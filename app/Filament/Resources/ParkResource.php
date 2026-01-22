@@ -43,9 +43,8 @@ class ParkResource extends Resource
                                             ->relationship('city', 'name')
                                             ->getOptionLabelFromRecordUsing(fn($record) => "{$record->name} - {$record->state->abbr}")
                                             ->searchable(['name'])
-                                            ->preload()
                                             ->required()
-                                            ->helperText('Digite o nome da cidade para buscar')
+                                            ->helperText('Digite pelo menos 3 letras para buscar')
                                             ->columnSpanFull(),
                                     ]),
 

@@ -64,7 +64,6 @@ class ParkResource extends Resource
                                         Forms\Components\TextInput::make('opening_hours')
                                             ->label('Horário de Funcionamento')
                                             ->placeholder('Qui-Dom: 10h às 17h')
-                                            ->required()
                                             ->maxLength(50)
                                             ->columnSpanFull(),
                                     ])
@@ -76,12 +75,10 @@ class ParkResource extends Resource
                                             ->label('Imagem Principal (Hero)')
                                             ->collection('hero')
                                             ->responsiveImages()
-                                            ->helperText('Imagem que aparece no topo. Tamanho recomendado: 1920x1080')
-                                            ->required(),
+                                            ->helperText('Imagem que aparece no topo. Tamanho recomendado: 1920x1080'),
                                         Forms\Components\RichEditor::make('description')
                                             ->label('Descrição do Parque')
                                             ->placeholder('Descreva o parque, suas principais atrações e diferenciais...')
-                                            ->required()
                                             ->columnSpanFull(),
                                     ]),
                             ]),
@@ -95,12 +92,12 @@ class ParkResource extends Resource
                                             ->label('Preço Adulto')
                                             ->numeric()
                                             ->prefix('R$')
-                                            ->required(),
+                                            ->default(0),
                                         Forms\Components\TextInput::make('price_child')
                                             ->label('Preço Criança')
                                             ->numeric()
                                             ->prefix('R$')
-                                            ->required(),
+                                            ->default(0),
                                         Forms\Components\TextInput::make('price_senior')
                                             ->label('Preço Idoso')
                                             ->numeric()

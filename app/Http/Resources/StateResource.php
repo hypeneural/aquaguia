@@ -13,6 +13,7 @@ class StateResource extends JsonResource
             'id' => $this->id,
             'abbr' => $this->abbr,
             'name' => $this->name,
+            'parkCount' => $this->parks_count ?? $this->parks()->count(),
         ];
     }
 }

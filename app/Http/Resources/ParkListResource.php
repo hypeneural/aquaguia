@@ -24,11 +24,9 @@ class ParkListResource extends JsonResource
             'familyIndex' => $this->family_index,
             'waterHeatedAreas' => $this->water_heated_areas,
             'shadeLevel' => $this->shade_level,
-            'tags' => $this->whenLoaded(
-                'tags',
-                fn() =>
-                $this->tags->pluck('slug')->toArray()
-            ),
+            'tags' => $this->relationLoaded('tags')
+                ? $this->tags->pluck('slug')->toArray()
+                : [],
             'distanceKm' => $this->when(
                 isset($this->distance_km),
                 fn() => round($this->distance_km, 1)

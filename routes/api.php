@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\HomeController;
 use App\Http\Controllers\Api\V1\ParkController;
 use App\Http\Controllers\Api\V1\StateController;
 use App\Http\Controllers\Api\V1\TagController;
+use App\Http\Controllers\Api\V1\WeatherController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -49,13 +50,15 @@ Route::prefix('v1')->group(function () {
     // ==========================================
     // Parks
     // ==========================================
-    Route::get('/parks/home', [HomeController::class, 'index']);        // Consolidated home data
-    Route::get('/parks/cursor', [ParkController::class, 'indexCursor']); // NEW: Cursor-based pagination
-    Route::get('/parks/search', [ParkController::class, 'search']);      // Lightweight autocomplete
+    Route::get('/parks/home', [HomeController::class, 'index']);
+    Route::get('/parks/cursor', [ParkController::class, 'indexCursor']);
+    Route::get('/parks/search', [ParkController::class, 'search']);
     Route::get('/parks', [ParkController::class, 'index']);
-    Route::get('/parks/{identifier}', [ParkController::class, 'show']);  // Supports slug or UUID
+    Route::get('/parks/{identifier}', [ParkController::class, 'show']);
     Route::get('/parks/{park}/attractions', [AttractionController::class, 'index']);
     Route::get('/parks/{park}/reviews', [ParkController::class, 'reviews']);
+    Route::get('/parks/{park}/weather', [WeatherController::class, 'show']);
+    Route::get('/parks/{park}/weather/current', [WeatherController::class, 'current']);
 
     // ==========================================
     // Favorites (Protected)

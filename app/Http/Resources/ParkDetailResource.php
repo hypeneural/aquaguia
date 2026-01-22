@@ -98,11 +98,9 @@ class ParkDetailResource extends JsonResource
             'shadeLevel' => $this->shade_level,
             'familyIndex' => $this->family_index,
 
-            'tags' => $this->whenLoaded(
-                'tags',
-                fn() =>
-                $this->tags->pluck('slug')->toArray()
-            ),
+            'tags' => $this->relationLoaded('tags')
+                ? $this->tags->pluck('slug')->toArray()
+                : [],
 
             'bestFor' => $this->best_for,
             'notFor' => $this->not_for,

@@ -49,11 +49,13 @@ Route::prefix('v1')->group(function () {
     // ==========================================
     // Parks
     // ==========================================
-    Route::get('/parks/home', [HomeController::class, 'index']);        // NEW: Consolidated home data
-    Route::get('/parks/search', [ParkController::class, 'search']);      // NEW: Lightweight autocomplete
+    Route::get('/parks/home', [HomeController::class, 'index']);        // Consolidated home data
+    Route::get('/parks/cursor', [ParkController::class, 'indexCursor']); // NEW: Cursor-based pagination
+    Route::get('/parks/search', [ParkController::class, 'search']);      // Lightweight autocomplete
     Route::get('/parks', [ParkController::class, 'index']);
     Route::get('/parks/{identifier}', [ParkController::class, 'show']);  // Supports slug or UUID
     Route::get('/parks/{park}/attractions', [AttractionController::class, 'index']);
+    Route::get('/parks/{park}/reviews', [ParkController::class, 'reviews']);
 
     // ==========================================
     // Favorites (Protected)

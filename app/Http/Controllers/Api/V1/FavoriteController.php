@@ -7,6 +7,7 @@ use App\Http\Resources\FavoriteResource;
 use App\Models\Park;
 use App\Models\UserFavorite;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class FavoriteController extends Controller
@@ -74,5 +75,52 @@ class FavoriteController extends Controller
         }
 
         return response()->json(null, 204);
+    }
+
+    /**
+     * POST /favorites/check
+     * 
+     * Check if multiple parks are favorited by the current user.
+     * Useful for showing favorite icons in park lists without N+1 queries.
+     */
+    public function check(Request $request): JsonResponse
+    {
+        $user = Auth::guard('api')->user();
+
+        $slugs = $request->input('slugs', []);
+
+        if (empty($slugs) || !is_array($slugs)) {
+            return response()->json([
+                'success' => false,
+                'error' => [
+                    'code' => 'VALIDATION_ERROR',
+                    'message' => 'O campo slugs é obrigatório e deve ser um array',
+                ],
+            ], 422);
+        }
+
+        // Limit to prevent abuse
+        $slugs = array_slice($slugs, 0, 50);
+
+        // Get park IDs from slugs
+        $parks = Park::whereIn('slug', $slugs)->pluck('id', 'slug');
+
+        // Check which are favorited
+        $favoritedIds = UserFavorite::where('user_id', $user->id)
+            ->whereIn('park_id', $parks->values())
+            ->pluck('park_id')
+            ->toArray();
+
+        // Build result map
+        $result = [];
+        foreach ($slugs as $slug) {
+            $parkId = $parks->get($slug);
+            $result[$slug] = $parkId ? in_array($parkId, $favoritedIds) : false;
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $result,
+        ]);
     }
 }

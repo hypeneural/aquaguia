@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CacheHeadersMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -12,8 +13,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // API middleware
+        $middleware->api(append: [
+            CacheHeadersMiddleware::class,
+        ]);
+
+        // Rate limiting for API routes
+        $middleware->throttleApi('api');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();
+

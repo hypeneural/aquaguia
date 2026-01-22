@@ -33,38 +33,73 @@ class ParkResource extends Resource
                 Forms\Components\Tabs::make('Parque')
                     ->tabs([
                         Forms\Components\Tabs\Tab::make('Geral')
+                            ->icon('heroicon-o-information-circle')
                             ->schema([
-                                Forms\Components\Select::make('city_id')
-                                    ->label('Cidade')
-                                    ->relationship('city', 'name')
-                                    ->searchable()
-                                    ->preload()
-                                    ->required(),
-                                Forms\Components\TextInput::make('name')
-                                    ->label('Nome')
-                                    ->required()
-                                    ->maxLength(100),
-                                Forms\Components\TextInput::make('slug')
-                                    ->label('Slug')
-                                    ->maxLength(100)
-                                    ->unique(ignoreRecord: true)
-                                    ->helperText('Deixe vazio para gerar automaticamente'),
-                                Forms\Components\RichEditor::make('description')
-                                    ->label('Descrição')
-                                    ->required()
-                                    ->columnSpanFull(),
-                                SpatieMediaLibraryFileUpload::make('hero')
-                                    ->label('Imagem Principal')
-                                    ->collection('hero')
-                                    ->responsiveImages()
-                                    ->required(),
-                                Forms\Components\TextInput::make('opening_hours')
-                                    ->label('Horário de Funcionamento')
-                                    ->placeholder('10h às 17h')
-                                    ->required()
-                                    ->maxLength(50),
-                            ])
-                            ->columns(2),
+                                Forms\Components\Section::make('Localização')
+                                    ->description('Selecione o estado e a cidade do parque')
+                                    ->schema([
+                                        Forms\Components\Select::make('state_id')
+                                            ->label('Estado')
+                                            ->options(fn() => \App\Models\State::orderBy('name')->pluck('name', 'id'))
+                                            ->searchable()
+                                            ->preload()
+                                            ->live()
+                                            ->afterStateUpdated(fn(Forms\Set $set) => $set('city_id', null))
+                                            ->dehydrated(false)
+                                            ->required(),
+                                        Forms\Components\Select::make('city_id')
+                                            ->label('Cidade')
+                                            ->options(
+                                                fn(Forms\Get $get) =>
+                                                \App\Models\City::where('state_id', $get('state_id'))
+                                                    ->orderBy('name')
+                                                    ->pluck('name', 'id')
+                                            )
+                                            ->searchable()
+                                            ->preload()
+                                            ->required()
+                                            ->disabled(fn(Forms\Get $get) => !$get('state_id'))
+                                            ->helperText('Primeiro selecione o estado'),
+                                    ])
+                                    ->columns(2),
+
+                                Forms\Components\Section::make('Informações Básicas')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('name')
+                                            ->label('Nome do Parque')
+                                            ->required()
+                                            ->maxLength(100)
+                                            ->placeholder('Ex: Beach Park'),
+                                        Forms\Components\TextInput::make('slug')
+                                            ->label('Slug (URL)')
+                                            ->maxLength(100)
+                                            ->unique(ignoreRecord: true)
+                                            ->helperText('Deixe vazio para gerar automaticamente')
+                                            ->placeholder('beach-park'),
+                                        Forms\Components\TextInput::make('opening_hours')
+                                            ->label('Horário de Funcionamento')
+                                            ->placeholder('Qui-Dom: 10h às 17h')
+                                            ->required()
+                                            ->maxLength(50)
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->columns(2),
+
+                                Forms\Components\Section::make('Imagem e Descrição')
+                                    ->schema([
+                                        SpatieMediaLibraryFileUpload::make('hero')
+                                            ->label('Imagem Principal (Hero)')
+                                            ->collection('hero')
+                                            ->responsiveImages()
+                                            ->helperText('Imagem que aparece no topo. Tamanho recomendado: 1920x1080')
+                                            ->required(),
+                                        Forms\Components\RichEditor::make('description')
+                                            ->label('Descrição do Parque')
+                                            ->placeholder('Descreva o parque, suas principais atrações e diferenciais...')
+                                            ->required()
+                                            ->columnSpanFull(),
+                                    ]),
+                            ]),
 
                         Forms\Components\Tabs\Tab::make('Preços')
                             ->schema([
@@ -105,35 +140,53 @@ class ParkResource extends Resource
                             ->columns(2),
 
                         Forms\Components\Tabs\Tab::make('Família')
+                            ->icon('heroicon-o-users')
                             ->schema([
-                                Forms\Components\TextInput::make('water_heated_areas')
-                                    ->label('Áreas Aquecidas')
-                                    ->numeric()
-                                    ->default(0)
-                                    ->helperText('Número de piscinas/áreas aquecidas'),
-                                Forms\Components\Select::make('shade_level')
-                                    ->label('Nível de Sombra')
-                                    ->options([
-                                        'baixa' => 'Baixa',
-                                        'média' => 'Média',
-                                        'alta' => 'Alta',
+                                Forms\Components\Section::make('Avaliação Familiar')
+                                    ->description('Configure as características para famílias')
+                                    ->schema([
+                                        Forms\Components\Radio::make('family_index')
+                                            ->label('Índice Família')
+                                            ->inline()
+                                            ->options([
+                                                1 => '1 ⚡ Radical',
+                                                2 => '2',
+                                                3 => '3 ⚖️ Equilibrado',
+                                                4 => '4',
+                                                5 => '5 👨‍👩‍👧‍👦 Familiar',
+                                            ])
+                                            ->default(3)
+                                            ->helperText('1 = Mais radical, 5 = Mais familiar')
+                                            ->required()
+                                            ->columnSpanFull(),
+                                        Forms\Components\TextInput::make('water_heated_areas')
+                                            ->label('Áreas com Água Aquecida')
+                                            ->numeric()
+                                            ->default(0)
+                                            ->suffix('áreas')
+                                            ->helperText('Quantidade de piscinas/áreas com água quente'),
+                                        Forms\Components\ToggleButtons::make('shade_level')
+                                            ->label('Nível de Sombra')
+                                            ->inline()
+                                            ->options([
+                                                'baixa' => '☀️ Baixa',
+                                                'média' => '⛅ Média',
+                                                'alta' => '🌴 Alta',
+                                            ])
+                                            ->required()
+                                            ->helperText('Quantidade de áreas sombreadas'),
                                     ])
-                                    ->required(),
-                                Forms\Components\TextInput::make('family_index')
-                                    ->label('Índice Família')
-                                    ->numeric()
-                                    ->minValue(0)
-                                    ->maxValue(100)
-                                    ->default(0)
-                                    ->helperText('Pontuação de 0 a 100'),
-                                Forms\Components\Select::make('tags')
-                                    ->label('Tags')
-                                    ->relationship('tags', 'label')
-                                    ->multiple()
-                                    ->preload()
-                                    ->searchable(),
-                            ])
-                            ->columns(2),
+                                    ->columns(2),
+
+                                Forms\Components\Section::make('Categorias')
+                                    ->schema([
+                                        Forms\Components\CheckboxList::make('tags')
+                                            ->label('Tags do Parque')
+                                            ->relationship('tags', 'label')
+                                            ->columns(3)
+                                            ->helperText('Selecione todas as tags aplicáveis'),
+                                    ]),
+                            ]),
 
                         Forms\Components\Tabs\Tab::make('Conteúdo')
                             ->schema([

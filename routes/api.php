@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\AttractionController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CityController;
 use App\Http\Controllers\Api\V1\FavoriteController;
+use App\Http\Controllers\Api\V1\HomeController;
 use App\Http\Controllers\Api\V1\ParkController;
 use App\Http\Controllers\Api\V1\StateController;
 use App\Http\Controllers\Api\V1\TagController;
@@ -48,8 +49,10 @@ Route::prefix('v1')->group(function () {
     // ==========================================
     // Parks
     // ==========================================
+    Route::get('/parks/home', [HomeController::class, 'index']);        // NEW: Consolidated home data
+    Route::get('/parks/search', [ParkController::class, 'search']);      // NEW: Lightweight autocomplete
     Route::get('/parks', [ParkController::class, 'index']);
-    Route::get('/parks/{park}', [ParkController::class, 'show']);
+    Route::get('/parks/{identifier}', [ParkController::class, 'show']);  // Supports slug or UUID
     Route::get('/parks/{park}/attractions', [AttractionController::class, 'index']);
 
     // ==========================================
@@ -57,7 +60,9 @@ Route::prefix('v1')->group(function () {
     // ==========================================
     Route::middleware('auth:api')->group(function () {
         Route::get('/favorites', [FavoriteController::class, 'index']);
+        Route::post('/favorites/check', [FavoriteController::class, 'check']);  // NEW: Batch check
         Route::post('/favorites/{park}', [FavoriteController::class, 'store']);
         Route::delete('/favorites/{park}', [FavoriteController::class, 'destroy']);
     });
 });
+

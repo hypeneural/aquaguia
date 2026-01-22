@@ -36,32 +36,18 @@ class ParkResource extends Resource
                             ->icon('heroicon-o-information-circle')
                             ->schema([
                                 Forms\Components\Section::make('Localização')
-                                    ->description('Selecione o estado e a cidade do parque')
+                                    ->description('Digite o nome da cidade para buscar')
                                     ->schema([
-                                        Forms\Components\Select::make('state_id')
-                                            ->label('Estado')
-                                            ->options(fn() => \App\Models\State::orderBy('name')->pluck('name', 'id'))
-                                            ->searchable()
-                                            ->preload()
-                                            ->live()
-                                            ->afterStateUpdated(fn(Forms\Set $set) => $set('city_id', null))
-                                            ->dehydrated(false)
-                                            ->required(),
                                         Forms\Components\Select::make('city_id')
                                             ->label('Cidade')
-                                            ->options(
-                                                fn(Forms\Get $get) =>
-                                                \App\Models\City::where('state_id', $get('state_id'))
-                                                    ->orderBy('name')
-                                                    ->pluck('name', 'id')
-                                            )
-                                            ->searchable()
+                                            ->relationship('city', 'name')
+                                            ->getOptionLabelFromRecordUsing(fn($record) => "{$record->name} - {$record->state->abbr}")
+                                            ->searchable(['name'])
                                             ->preload()
                                             ->required()
-                                            ->disabled(fn(Forms\Get $get) => !$get('state_id'))
-                                            ->helperText('Primeiro selecione o estado'),
-                                    ])
-                                    ->columns(2),
+                                            ->helperText('Digite o nome da cidade para buscar')
+                                            ->columnSpanFull(),
+                                    ]),
 
                                 Forms\Components\Section::make('Informações Básicas')
                                     ->schema([
@@ -251,6 +237,10 @@ class ParkResource extends Resource
                     ->relationship('city', 'name'),
                 Tables\Filters\TernaryFilter::make('is_active')
                     ->label('Ativo'),
+            ])
+            ->headerActions([
+                Tables\Actions\CreateAction::make()
+                    ->label('Novo Parque'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

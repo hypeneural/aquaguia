@@ -14,6 +14,7 @@ class StateResource extends JsonResource
             'abbr' => $this->abbr,
             'name' => $this->name,
             'parkCount' => $this->parks_count ?? $this->parks()->count(),
+            'cityCount' => $this->cities_count ?? $this->cities()->count(),
         ];
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CityResource;
 use App\Http\Resources\ParkListResource;
+use App\Models\Attraction;
 use App\Models\City;
 use App\Models\Park;
 use App\Models\State;
@@ -16,7 +17,7 @@ class HomeController extends Controller
      * GET /parks/home
      * 
      * Consolidated endpoint for home page data.
-     * Returns featured cities, top parks, and platform stats in a single request.
+     * Returns featured cities, top parks, featured attractions, and platform stats.
      */
     public function index(): JsonResponse
     {
@@ -35,6 +36,27 @@ class HomeController extends Controller
             ->limit(6)
             ->get();
 
+        // Featured attractions (highest adrenaline, with park info)
+        $featuredAttractions = Attraction::with('park:id,name,slug')
+            ->where('is_open', true)
+            ->whereNotNull('image')
+            ->orderByDesc('adrenaline')
+            ->limit(10)
+            ->get()
+            ->map(fn($attraction) => [
+                'id' => $attraction->id,
+                'name' => $attraction->name,
+                'park' => [
+                    'id' => $attraction->park->id,
+                    'name' => $attraction->park->name,
+                    'slug' => $attraction->park->slug,
+                ],
+                'type' => $attraction->type,
+                'adrenaline' => $attraction->adrenaline,
+                'min_height_cm' => $attraction->min_height_cm,
+                'image' => $attraction->image,
+            ]);
+
         // Platform stats
         $stats = [
             'totalParks' => Park::where('is_active', true)->count(),
@@ -47,6 +69,7 @@ class HomeController extends Controller
             'data' => [
                 'featuredCities' => CityResource::collection($featuredCities),
                 'topParks' => ParkListResource::collection($topParks),
+                'featuredAttractions' => $featuredAttractions,
                 'stats' => $stats,
             ],
         ]);

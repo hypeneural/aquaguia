@@ -12,7 +12,7 @@ class StateController extends Controller
 {
     public function index(): JsonResponse
     {
-        $states = State::withCount('parks')->orderBy('name')->get();
+        $states = State::withCount(['parks', 'cities'])->orderBy('name')->get();
 
         return response()->json([
             'success' => true,
